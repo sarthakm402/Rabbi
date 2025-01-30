@@ -1,0 +1,31 @@
+# Note to Users:
+This code provides a comprehensive set of data preprocessing, feature engineering, and model training utilities, including the handling of missing values, scaling, and outlier detection, as well as machine learning model evaluation and hyperparameter tuning. Below are some important points to note:
+
+Data Modification:
+
+Every function that modifies data (such as handling missing values, scaling, or detecting anomalies) works on a copy of the input data. This ensures that the original data remains unchanged, which is important for reproducibility and prevents accidental overwriting of your dataset.
+Model Evaluation:
+
+The code supports both regression and classification models, with built-in hyperparameter tuning using Optuna for model optimization.
+The regression models supported are Linear Regression, Random Forest Regressor, XGBoost Regressor, and SVR.
+The classification models supported are Logistic Regression, Random Forest Classifier, and XGBoost Classifier.
+The objective() function used in hyperparameter optimization evaluates model performance using cross-validation. For classification models, the f1_score is used, and for regression, mean squared error (MSE) is used as the evaluation metric.
+Scaling Options:
+
+The scale() function provides various options for preprocessing, such as Standard Scaling, MinMax Scaling, Power Transformation, and Log Transformation. Make sure to choose the one that fits the nature of your data and model.
+Missing Data Handling:
+
+You can handle missing values by either imputing or dropping columns based on the percentage of missing data. The impute=True flag enables imputation with a strategy such as "mean," "median," or "most_frequent."
+Anomaly Detection:
+
+The anomaly detection mechanism uses the Interquartile Range (IQR) to identify outliers in numerical features. Detected anomalies are replaced with NaN values.
+Hyperparameter Tuning:
+
+Hyperparameter tuning is done using Optuna, an optimization framework that allows efficient searching of hyperparameters. By specifying the model types in the regression_model() or classification_model() functions, you can tune parameters like tree depth, learning rate, and more.
+Performance Metrics:
+
+For regression tasks, the code reports MSE, MAE, and R-squared. For classification tasks, accuracy and F1-score are reported.
+Training and Testing Split:
+
+Both regression and classification functions automatically split the data into training and testing sets (70/30 split). You can modify this split if necessary.
+Please ensure you are familiar with the libraries (like pandas, scikit-learn, xgboost, and optuna) and their expected versions to avoid compatibility issues. Adjust the code for your specific data and modeling needs, as necessary.
