@@ -10,6 +10,7 @@ The code supports both regression and classification models, with built-in hyper
 The regression models supported are Linear Regression, Random Forest Regressor, XGBoost Regressor, and SVR.
 The classification models supported are Logistic Regression, Random Forest Classifier, and XGBoost Classifier.
 The objective() function used in hyperparameter optimization evaluates model performance using cross-validation. For classification models, the f1_score is used, and for regression, mean squared error (MSE) is used as the evaluation metric.
+
 Scaling Options:
 
 The scale() function provides various options for preprocessing, such as Standard Scaling, MinMax Scaling, Power Transformation, and Log Transformation. Make sure to choose the one that fits the nature of your data and model.
@@ -35,9 +36,13 @@ Warnings for Users:
 In-Place Modifications or Copies:
 
 detect_anomaly(df) returns a modified copy of the dataframe with anomalies replaced by NaN. It does not modify the dataframe in place. Be sure to assign the return value to a variable if you want to preserve the changes.
+
 missing_values(data) modifies the dataframe in-place if drop_threshold is specified. If you want to keep the original dataframe, create a copy before calling this function.
+
 scale(data) returns a new transformed copy of the dataset. It does not modify the input data in place. Be sure to capture the result if you want to use the transformed data.
+
 preprocess_features(data) returns a new dataframe with selected features (low variance or correlated ones dropped). The original dataframe is not modified in place.
+
 Data Transformation Order and Dependencies:
 
 If you apply multiple transformations (e.g., scaling and encoding), the order in which transformations are applied may affect the final result. It's recommended to carefully check the sequence and dependencies when chaining functions.
@@ -53,6 +58,7 @@ preprocess_features(data) removes features with low variance and highly correlat
 Model Hyperparameter Tuning:
 
 The functions regression_model and classification_model use Optuna for hyperparameter tuning. This can lead to long runtimes, especially with large datasets or a high number of trials. Be aware of this when running these functions.
+
 Model Results:
 
 The regression_model and classification_model functions return performance metrics (e.g., MSE, accuracy) for multiple models. Make sure to check the returned dictionary structure for each model’s results, as these will contain key metrics and the model's fitted parameters.
