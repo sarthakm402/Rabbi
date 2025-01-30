@@ -1,17 +1,16 @@
-
 import pandas as pd
 import numpy as np
 from sklearn.impute import SimpleImputer
-from sklearn.preprocessing import StandardScaler, MinMaxScaler, OneHotEncoder, PowerTransformer,FunctionTransformer
+from sklearn.preprocessing import StandardScaler, MinMaxScaler, OneHotEncoder, PowerTransformer, FunctionTransformer
 # Feature Engineering
 from sklearn.feature_selection import VarianceThreshold
 import seaborn as sns
-from sklearn.linear_model import LinearRegression,LogisticRegression
-from sklearn.ensemble import RandomForestRegressor,RandomForestClassifier
+from sklearn.linear_model import LinearRegression, LogisticRegression
+from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier
 from xgboost import XGBRegressor, XGBClassifier
 from sklearn.svm import SVR
 import optuna
-from sklearn.model_selection import cross_val_score,train_test_split
+from sklearn.model_selection import cross_val_score, train_test_split
 # Model Evaluation
 from sklearn.metrics import (
     mean_squared_error,
@@ -20,12 +19,7 @@ from sklearn.metrics import (
     accuracy_score,
     f1_score,
 )
-# path=r"C:\Users\sarthak mohapatra\Downloads\archive\creditcard.csv"
-# model=DataExplorer(path)
-# model.stat()
-# df=pd.read_csv(path)
-# print(df.isnull().sum())
-# print(df.isnull().mean()*100)
+
 def detect_anomaly(df):
     """
     Detects anomalies in a dataset using the Interquartile Range (IQR) method.
@@ -41,26 +35,16 @@ def detect_anomaly(df):
 
     Side effects:
     - Modifies the input dataframe by replacing outliers with NaN values in place.
-
-    Example:
-    ```
-    df = pd.read_csv("data.csv")
-    detect_anomaly(df)
-    ```
-
-    Notes:
-    - The IQR method detects outliers as those values which are more than 1.5 times the IQR above Q3 or below Q1.
-    - The function applies this process column-wise, and anomalies are replaced with `np.nan`.
     """
     for i in df.columns:
-           Q1= df[i].quantile(0.25)
-           Q3= df[i].quantile(0.75)
-           IQR=Q3-Q1
-           lower_bound=Q1-(1.5*IQR)
-           upper_bound=Q3+(1.5*IQR)
-           df.loc[(df[i] < lower_bound) | (df[i] > upper_bound),
-                  i]=np.nan
-           print(f"Anomalies detected in column {i}")
+        Q1 = df[i].quantile(0.25)
+        Q3 = df[i].quantile(0.75)
+        IQR = Q3 - Q1
+        lower_bound = Q1 - (1.5 * IQR)
+        upper_bound = Q3 + (1.5 * IQR)
+        df.loc[(df[i] < lower_bound) | (df[i] > upper_bound), i] = np.nan
+        print(f"Anomalies detected in column {i}")
+
 def missing_values(data, impute=True, strategy="mean", drop_threshold=None):
     """
     Handles missing values in a dataset.
@@ -86,10 +70,11 @@ def missing_values(data, impute=True, strategy="mean", drop_threshold=None):
         print(f"Imputed missing values using strategy: {strategy}")
     
     return data
+
 def scale(data, standard=True, min_max=False, power_transform=False, one_hot=False, power_method='yeo-johnson', log_transform=False, categories='auto'):
     """
     Scales or encodes the input data using various preprocessing techniques based on the specified parameters.
-
+    
     This function applies a transformation or encoding to the dataset using one of the following methods:
     - StandardScaler: Scales features to have zero mean and unit variance.
     - MinMaxScaler: Scales features to a specific range, typically between 0 and 1.
@@ -100,10 +85,10 @@ def scale(data, standard=True, min_max=False, power_transform=False, one_hot=Fal
 
     Parameters:
     - data (pd.DataFrame or np.ndarray): The dataset to preprocess. This can be a pandas DataFrame or numpy array.
-    - s (bool): If True, StandardScaler will be applied. Default is True.
-    - m (bool): If True, MinMaxScaler will be applied. Default is False.
-    - p (bool): If True, PowerTransformer will be applied. Default is False.
-    - o (bool): If True, OneHotEncoder will be applied to categorical data. Default is False.
+    - standard (bool): If True, StandardScaler will be applied. Default is True.
+    - min_max (bool): If True, MinMaxScaler will be applied. Default is False.
+    - power_transform (bool): If True, PowerTransformer will be applied. Default is False.
+    - one_hot (bool): If True, OneHotEncoder will be applied to categorical data. Default is False.
     - power_method (str): Method for PowerTransformer ('yeo-johnson' or 'box-cox'). Default is 'yeo-johnson'.
       'box-cox' requires all input data to be positive.
     - log_transform (bool): If True, applies the log1p transformation (log(x + 1)). Default is False.
@@ -112,25 +97,6 @@ def scale(data, standard=True, min_max=False, power_transform=False, one_hot=Fal
     Returns:
     - np.ndarray or pd.DataFrame: The preprocessed dataset. Returns a numpy array for scaling transformations 
       or a sparse matrix/numpy array for one-hot encoding.
-
-    Example:
-    ```python
-    df = pd.read_csv("data.csv")
-
-    # Apply PowerTransformer with 'box-cox'
-    transformed_data = scale(df, s=False, p=True, power_method='box-cox')
-
-    # Apply log1p transformation
-    transformed_data = scale(df, s=False, p=False, log_transform=True)
-
-    # Apply OneHotEncoder
-    encoded_data = scale(df, s=False, o=True)
-    ```
-
-    Notes:
-    - Ensure the input data is numeric for scaling and power transformations.
-    - OneHotEncoder is applicable for categorical features only.
-    - If multiple flags are True, the priority order is StandardScaler > MinMaxScaler > PowerTransformer > Log1p Transform > OneHotEncoder.
     """
     if standard:
         scaler = StandardScaler()
@@ -152,7 +118,7 @@ def scale(data, standard=True, min_max=False, power_transform=False, one_hot=Fal
     
     return data_transformed
 
-def preprocess_features(data,variance=False,correlation=False, variance_threshold=0.01, correlation_threshold=0.9):
+def preprocess_features(data, variance=False, correlation=False, variance_threshold=0.01, correlation_threshold=0.9):
     """
     Removes low-variance features and highly correlated features from the dataset.
     
@@ -165,20 +131,19 @@ def preprocess_features(data,variance=False,correlation=False, variance_threshol
     - pd.DataFrame: Dataset with low-variance and highly correlated features removed.
     """
     if variance:
-     selector = VarianceThreshold(threshold=variance_threshold)
-     low_variance_data = selector.fit_transform(data)
-     retained_features = data.columns[selector.get_support()]
-     filtered_data = pd.DataFrame(low_variance_data, columns=retained_features)
+        selector = VarianceThreshold(threshold=variance_threshold)
+        low_variance_data = selector.fit_transform(data)
+        retained_features = data.columns[selector.get_support()]
+        filtered_data = pd.DataFrame(low_variance_data, columns=retained_features)
 
     if correlation:
-     corr_matrix = filtered_data.corr()
-     upper_tri = corr_matrix.where(
-        np.triu(np.ones(corr_matrix.shape), k=1).astype(bool)
-     )
-     to_drop = [column for column in upper_tri.columns if any(upper_tri[column].abs() > correlation_threshold)]
-     filtered_data = filtered_data.drop(columns=to_drop)
+        corr_matrix = filtered_data.corr()
+        upper_tri = corr_matrix.where(np.triu(np.ones(corr_matrix.shape), k=1).astype(bool))
+        to_drop = [column for column in upper_tri.columns if any(upper_tri[column].abs() > correlation_threshold)]
+        filtered_data = filtered_data.drop(columns=to_drop)
 
     return filtered_data
+
 def regression_model(train, labels, models=['linear', 'random_forest', 'xgboost', 'svr'], n_trials=50):
     """
     Trains multiple regression models with hyperparameter tuning using Optuna and evaluates their performance.
@@ -250,7 +215,6 @@ def regression_model(train, labels, models=['linear', 'random_forest', 'xgboost'
     print(results)
     return results
 
-
 def classification_model(train, labels, models=['logistic', 'random_forest', 'xgboost'], n_trials=50):
     """
     Trains multiple classification models with hyperparameter tuning using Optuna and evaluates their performance.
@@ -310,12 +274,3 @@ def classification_model(train, labels, models=['logistic', 'random_forest', 'xg
             results[model_type] = {'model': best_model, 'params': best_params, 'accuracy': acc, 'f1_score': f1, 'predictions': predictions}
     print(results)
     return results
-
-
-
-
-
-     
-     
-
-
