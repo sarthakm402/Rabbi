@@ -1,4 +1,4 @@
-# Note to Users:
+Note to Users:
 This code provides a comprehensive set of data preprocessing, feature engineering, and model training utilities, including the handling of missing values, scaling, and outlier detection, as well as machine learning model evaluation and hyperparameter tuning. Below are some important points to note:
 
 Data Modification:
@@ -29,3 +29,37 @@ Training and Testing Split:
 
 Both regression and classification functions automatically split the data into training and testing sets (70/30 split). You can modify this split if necessary.
 Please ensure you are familiar with the libraries (like pandas, scikit-learn, xgboost, and optuna) and their expected versions to avoid compatibility issues. Adjust the code for your specific data and modeling needs, as necessary.
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Warnings for Users:
+In-Place Modifications or Copies:
+
+detect_anomaly(df) returns a modified copy of the dataframe with anomalies replaced by NaN. It does not modify the dataframe in place. Be sure to assign the return value to a variable if you want to preserve the changes.
+missing_values(data) modifies the dataframe in-place if drop_threshold is specified. If you want to keep the original dataframe, create a copy before calling this function.
+scale(data) returns a new transformed copy of the dataset. It does not modify the input data in place. Be sure to capture the result if you want to use the transformed data.
+preprocess_features(data) returns a new dataframe with selected features (low variance or correlated ones dropped). The original dataframe is not modified in place.
+Data Transformation Order and Dependencies:
+
+If you apply multiple transformations (e.g., scaling and encoding), the order in which transformations are applied may affect the final result. It's recommended to carefully check the sequence and dependencies when chaining functions.
+Imputation Behavior:
+
+missing_values(data) uses SimpleImputer for imputation, and it will replace missing values using the specified strategy (mean, median, or most_frequent). Ensure that the imputation strategy aligns with your data type (e.g., avoid using mean for categorical data).
+Outlier Handling:
+
+detect_anomaly(df) uses the Interquartile Range (IQR) method to detect anomalies. It replaces values outside the IQR bounds with NaN. This approach works well for many distributions but may not be ideal for all types of data (e.g., if the data is heavily skewed or follows a non-standard distribution).
+Feature Selection Assumptions:
+
+preprocess_features(data) removes features with low variance and highly correlated features. The threshold values for variance and correlation are customizable, but ensure these values make sense for your data. For example, very low variance might lead to dropping important features.
+Model Hyperparameter Tuning:
+
+The functions regression_model and classification_model use Optuna for hyperparameter tuning. This can lead to long runtimes, especially with large datasets or a high number of trials. Be aware of this when running these functions.
+Model Results:
+
+The regression_model and classification_model functions return performance metrics (e.g., MSE, accuracy) for multiple models. Make sure to check the returned dictionary structure for each model’s results, as these will contain key metrics and the model's fitted parameters.
+Data Preprocessing:
+
+Ensure that data types are compatible with the transformations being applied. For example, OneHotEncoder requires categorical variables, and PowerTransformer assumes numeric features.
+
+
+
+
