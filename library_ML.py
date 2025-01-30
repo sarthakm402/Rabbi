@@ -31,19 +31,19 @@ def detect_anomaly(df):
     - df (pd.DataFrame): The dataset to process. Each column is evaluated for outliers.
     
     Returns:
-    - pd.DataFrame: The processed dataset with anomalies (outliers) replaced by NaN.
-
-    Side effects:
-    - Modifies the input dataframe by replacing outliers with NaN values in place.
+    - pd.DataFrame: A modified copy of the dataset with anomalies (outliers) replaced by NaN.
     """
-    for i in df.columns:
-        Q1 = df[i].quantile(0.25)
-        Q3 = df[i].quantile(0.75)
+    df_copy = df.copy()  # Create a copy of the original dataframe
+    for i in df_copy.columns:
+        Q1 = df_copy[i].quantile(0.25)
+        Q3 = df_copy[i].quantile(0.75)
         IQR = Q3 - Q1
         lower_bound = Q1 - (1.5 * IQR)
         upper_bound = Q3 + (1.5 * IQR)
-        df.loc[(df[i] < lower_bound) | (df[i] > upper_bound), i] = np.nan
+        df_copy.loc[(df_copy[i] < lower_bound) | (df_copy[i] > upper_bound), i] = np.nan
         print(f"Anomalies detected in column {i}")
+    return df_copy  # Return the modified copy of the dataframe
+
 
 def missing_values(data, impute=True, strategy="mean", drop_threshold=None):
     """
@@ -56,47 +56,39 @@ def missing_values(data, impute=True, strategy="mean", drop_threshold=None):
     - drop_threshold (float): If specified, drops columns with missingness above this threshold.
 
     Returns:
-    - pd.DataFrame: The processed dataset.
+    - pd.DataFrame: The processed dataset (modified copy).
     """
+    data_copy = data.copy()  # Create a copy of the original dataframe
     if drop_threshold is not None:
-        missing_percentages = data.isnull().mean()
+        missing_percentages = data_copy.isnull().mean()
         to_drop = missing_percentages[missing_percentages > drop_threshold].index
-        data = data.drop(columns=to_drop)
+        data_copy = data_copy.drop(columns=to_drop)
         print(f"Dropped columns: {list(to_drop)}")
     
     if impute:
         imputer = SimpleImputer(strategy=strategy)
-        data = pd.DataFrame(imputer.fit_transform(data), columns=data.columns)
+        data_copy = pd.DataFrame(imputer.fit_transform(data_copy), columns=data_copy.columns)
         print(f"Imputed missing values using strategy: {strategy}")
     
-    return data
+    return data_copy  # Return the modified copy
+
 
 def scale(data, standard=True, min_max=False, power_transform=False, one_hot=False, power_method='yeo-johnson', log_transform=False, categories='auto'):
     """
     Scales or encodes the input data using various preprocessing techniques based on the specified parameters.
-    
-    This function applies a transformation or encoding to the dataset using one of the following methods:
-    - StandardScaler: Scales features to have zero mean and unit variance.
-    - MinMaxScaler: Scales features to a specific range, typically between 0 and 1.
-    - PowerTransformer: Applies a power transformation to stabilize variance and make data more Gaussian-like.
-      Supports 'yeo-johnson' (default) and 'box-cox' methods.
-    - Log1p Transform: Applies a natural log transformation (log(x + 1)) to handle skewed data.
-    - OneHotEncoder: Encodes categorical features into one-hot numeric arrays.
 
     Parameters:
-    - data (pd.DataFrame or np.ndarray): The dataset to preprocess. This can be a pandas DataFrame or numpy array.
-    - standard (bool): If True, StandardScaler will be applied. Default is True.
-    - min_max (bool): If True, MinMaxScaler will be applied. Default is False.
-    - power_transform (bool): If True, PowerTransformer will be applied. Default is False.
-    - one_hot (bool): If True, OneHotEncoder will be applied to categorical data. Default is False.
-    - power_method (str): Method for PowerTransformer ('yeo-johnson' or 'box-cox'). Default is 'yeo-johnson'.
-      'box-cox' requires all input data to be positive.
-    - log_transform (bool): If True, applies the log1p transformation (log(x + 1)). Default is False.
-    - categories (str or list of lists): Used by OneHotEncoder to specify how categories are handled. Default is 'auto'.
+    - data (pd.DataFrame or np.ndarray): The dataset to preprocess.
+    - standard (bool): If True, applies StandardScaler.
+    - min_max (bool): If True, applies MinMaxScaler.
+    - power_transform (bool): If True, applies PowerTransformer.
+    - one_hot (bool): If True, applies OneHotEncoder.
+    - power_method (str): Method for PowerTransformer ('yeo-johnson' or 'box-cox').
+    - log_transform (bool): If True, applies log1p transformation.
+    - categories (str or list of lists): Used by OneHotEncoder to specify how categories are handled.
 
     Returns:
-    - np.ndarray or pd.DataFrame: The preprocessed dataset. Returns a numpy array for scaling transformations 
-      or a sparse matrix/numpy array for one-hot encoding.
+    - np.ndarray or pd.DataFrame: The preprocessed dataset.
     """
     if standard:
         scaler = StandardScaler()
@@ -116,33 +108,36 @@ def scale(data, standard=True, min_max=False, power_transform=False, one_hot=Fal
     else:
         raise ValueError("At least one transformation method (s, m, p, log_transform, or o) must be set to True.")
     
-    return data_transformed
+    return data_transformed  # Return the transformed data
+
 
 def preprocess_features(data, variance=False, correlation=False, variance_threshold=0.01, correlation_threshold=0.9):
     """
     Removes low-variance features and highly correlated features from the dataset.
-    
+
     Parameters:
     - data (pd.DataFrame): The input dataset.
     - variance_threshold (float): Minimum variance required for a feature to be retained.
     - correlation_threshold (float): Correlation threshold above which features are dropped.
-    
+
     Returns:
-    - pd.DataFrame: Dataset with low-variance and highly correlated features removed.
+    - pd.DataFrame: A modified copy of the dataset with low-variance and highly correlated features removed.
     """
+    data_copy = data.copy()  # Create a copy of the original dataframe
     if variance:
         selector = VarianceThreshold(threshold=variance_threshold)
-        low_variance_data = selector.fit_transform(data)
-        retained_features = data.columns[selector.get_support()]
-        filtered_data = pd.DataFrame(low_variance_data, columns=retained_features)
+        low_variance_data = selector.fit_transform(data_copy)
+        retained_features = data_copy.columns[selector.get_support()]
+        data_copy = pd.DataFrame(low_variance_data, columns=retained_features)
 
     if correlation:
-        corr_matrix = filtered_data.corr()
+        corr_matrix = data_copy.corr()
         upper_tri = corr_matrix.where(np.triu(np.ones(corr_matrix.shape), k=1).astype(bool))
         to_drop = [column for column in upper_tri.columns if any(upper_tri[column].abs() > correlation_threshold)]
-        filtered_data = filtered_data.drop(columns=to_drop)
+        data_copy = data_copy.drop(columns=to_drop)
 
-    return filtered_data
+    return data_copy  # Return the modified copy
+
 
 def regression_model(train, labels, models=['linear', 'random_forest', 'xgboost', 'svr'], n_trials=50):
     """
@@ -215,6 +210,7 @@ def regression_model(train, labels, models=['linear', 'random_forest', 'xgboost'
     print(results)
     return results
 
+
 def classification_model(train, labels, models=['logistic', 'random_forest', 'xgboost'], n_trials=50):
     """
     Trains multiple classification models with hyperparameter tuning using Optuna and evaluates their performance.
@@ -242,35 +238,38 @@ def classification_model(train, labels, models=['logistic', 'random_forest', 'xg
                 'subsample': trial.suggest_float('subsample', 0.5, 1.0),
                 'colsample_bytree': trial.suggest_float('colsample_bytree', 0.5, 1.0),
             }
-            model = XGBClassifier(**params, random_state=42, use_label_encoder=False, eval_metric='logloss')
+            model = XGBClassifier(**params, random_state=42)
+        elif model_type == 'logistic':
+            params = {
+                'C': trial.suggest_float('C', 0.1, 10),
+                'solver': trial.suggest_categorical('solver', ['liblinear', 'saga']),
+            }
+            model = LogisticRegression(**params)
         else:
             raise ValueError(f"Unsupported model type: {model_type}")
 
-        scores = cross_val_score(model, X_train, y_train, cv=5, scoring='accuracy')
-        return -np.mean(scores)
+        model.fit(X_train, y_train)
+        predictions = model.predict(X_test)
+        f1 = f1_score(y_test, predictions, average='weighted')
+        return f1
 
     for model_type in models:
-        if model_type == 'logistic':
-            model = LogisticRegression(random_state=42)
-            model.fit(X_train, y_train)
-            predictions = model.predict(X_test)
-            acc = accuracy_score(y_test, predictions)
-            f1 = f1_score(y_test, predictions, average='weighted')
-            results['logistic'] = {'model': model, 'params': None, 'accuracy': acc, 'f1_score': f1, 'predictions': predictions}
-        else:
-            study = optuna.create_study(direction='minimize')
-            study.optimize(lambda trial: objective(trial, model_type), n_trials=n_trials)
-            best_params = study.best_params
+        study = optuna.create_study(direction='maximize')
+        study.optimize(lambda trial: objective(trial, model_type), n_trials=n_trials)
+        best_params = study.best_params
+        
+        if model_type == 'random_forest':
+            best_model = RandomForestClassifier(**best_params, random_state=42)
+        elif model_type == 'xgboost':
+            best_model = XGBClassifier(**best_params, random_state=42)
+        elif model_type == 'logistic':
+            best_model = LogisticRegression(**best_params)
 
-            if model_type == 'random_forest':
-                best_model = RandomForestClassifier(**best_params, random_state=42)
-            elif model_type == 'xgboost':
-                best_model = XGBClassifier(**best_params, random_state=42, use_label_encoder=False, eval_metric='logloss')
-
-            best_model.fit(X_train, y_train)
-            predictions = best_model.predict(X_test)
-            acc = accuracy_score(y_test, predictions)
-            f1 = f1_score(y_test, predictions, average='weighted')
-            results[model_type] = {'model': best_model, 'params': best_params, 'accuracy': acc, 'f1_score': f1, 'predictions': predictions}
+        best_model.fit(X_train, y_train)
+        predictions = best_model.predict(X_test)
+        accuracy = accuracy_score(y_test, predictions)
+        f1 = f1_score(y_test, predictions, average='weighted')
+        results[model_type] = {'model': best_model, 'params': best_params, 'accuracy': accuracy, 'f1_score': f1, 'predictions': predictions}
+    
     print(results)
     return results
