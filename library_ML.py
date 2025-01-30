@@ -152,7 +152,7 @@ def scale(data, standard=True, min_max=False, power_transform=False, one_hot=Fal
     
     return data_transformed
 
-def preprocess_features(data,variance=False,correlatiom=False, variance_threshold=0.01, correlation_threshold=0.9):
+def preprocess_features(data,variance=False,correlation=False, variance_threshold=0.01, correlation_threshold=0.9):
     """
     Removes low-variance features and highly correlated features from the dataset.
     
@@ -170,7 +170,7 @@ def preprocess_features(data,variance=False,correlatiom=False, variance_threshol
      retained_features = data.columns[selector.get_support()]
      filtered_data = pd.DataFrame(low_variance_data, columns=retained_features)
 
-    if correlatiom:
+    if correlation:
      corr_matrix = filtered_data.corr()
      upper_tri = corr_matrix.where(
         np.triu(np.ones(corr_matrix.shape), k=1).astype(bool)
