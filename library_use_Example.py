@@ -22,7 +22,7 @@ print(df.describe())
 # ✅ 3. Handle Missing Values
 df = missing_values(df, impute=True, strategy="mean", drop_threshold=0.5)
 
-# ✅ 4. Scale Data
+# ✅ 4. Scale Data   
 scaled_data = scale(df, standard=True)
 
 # ✅ 5. Feature Selection (Variance & Correlation)
