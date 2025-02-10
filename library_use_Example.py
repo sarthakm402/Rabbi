@@ -8,7 +8,7 @@ from library_ML import (
     detect_anomaly, missing_values, scale, preprocess_features, 
     regression_model, classification_model
 )
-
+  
 # ✅ 1. Load Sample Dataset 
 df = pd.DataFrame(np.random.randn(100, 5), columns=[f"Feature_{i}" for i in range(5)])  # Fake dataset
 
